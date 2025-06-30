@@ -14,6 +14,10 @@ import java.util.Map;
 @RestController               // == @Controller + @ResponseBody on every method
 @RequestMapping("/trackers/ajax")
 public class RightPanelController {
+    @GetMapping("/ping.spr")
+    public String ping() {
+        return "pong";
+    }
 
     @Autowired
     private TrackerItemManager trackerItemManager;
