@@ -40,12 +40,14 @@ public class RightPanelController {
             return Map.of("error", "找不到 ID=" + itemId);
         }
 
+
+
         /* 3) 只把需要的字段返回给前端 */
         Map<String, Object> result = new HashMap<>();
         result.put("id",          item.getId());
         result.put("name",        item.getName());
         result.put("description", item.getDescription());
-        result.put("status",      item.getStatus().getName());
+        //result.put("status",      item.getStatus().getName());
         return result;
     }
 }
