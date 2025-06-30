@@ -1,73 +1,53 @@
 package com.intland.codebeamer.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.intland.codebeamer.ajax.JsonView;
 import com.intland.codebeamer.manager.TrackerItemManager;
 import com.intland.codebeamer.persistence.dto.TrackerItemDto;
 import com.intland.codebeamer.persistence.dto.UserDto;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
-@Controller
+@RestController
+@RequestMapping("/trackers/ajax")
 public class RightPanelController {
 
     @Autowired
     private TrackerItemManager trackerItemManager;
 
-    private final ObjectMapper jsonMapper = new ObjectMapper();
-
     /**
-     * 点击右侧 custom-tab 时，POST 到 /trackers/ajax/custom_item.spr?itemId=123
-     * 返回当前 Item 的 name、description、status 等字段的 JSON。
+     * AJAX 获取当前 Item 的基本信息。
+     * POST /trackers/ajax/custom_item.spr?itemId=123
+     * 返回 JSON：{id, name, description, status}
      */
-    @RequestMapping(
-            value  = "/trackers/ajax/custom_item.spr",
-            method = RequestMethod.POST,
-            params = "itemId"
+    @PostMapping(
+            value    = "/custom_item.spr",
+            produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public JsonView getCustomItemData(
+    public Map<String,Object> getCustomItemData(
             HttpServletRequest request,
-            @RequestParam("itemId") String itemIdStr
-    ) throws Exception {
-        // —— 1. 从 Session 中直接取 currentUser ——
-        HttpSession session = request.getSession(false);
-        if (session == null) {
-            throw new IllegalStateException("Session 不存在，用户可能未登录");
-        }
-        UserDto user = (UserDto) session.getAttribute("currentUser");
+            @RequestParam("itemId") int itemId
+    ) {
+        // —— 1. 从 Session 中取 currentUser ——
+        UserDto user = (UserDto) request.getSession(false).getAttribute("currentUser");
         if (user == null) {
-            throw new IllegalStateException("Session 中未找到 currentUser，请确认已登录");
+            return Collections.singletonMap("error", "Session 失效或未登录");
         }
-
-        // —— 2. 解析 itemId，加载 TrackerItemDto（含权限检查） ——
-        int itemId;
-        try {
-            itemId = Integer.parseInt(itemIdStr);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("itemId 必须是数字: " + itemIdStr, e);
-        }
+        // —— 2. 加载 TrackerItemDto ——
         TrackerItemDto item = trackerItemManager.findById(user, itemId);
         if (item == null) {
-            throw new NoSuchElementException("未找到 ID=" + itemId + " 的 TrackerItem");
+            return Collections.singletonMap("error", "未找到 ID=" + itemId);
         }
-
-        // —— 3. 按需取字段，封装到 Map ——
-        Map<String, Object> result = new HashMap<>();
+        // —— 3. 封装并返回 JSON ——
+        Map<String,Object> result = new HashMap<>();
         result.put("id",          item.getId());
         result.put("name",        item.getName());
         result.put("description", item.getDescription());
         result.put("status",      item.getStatus().getName());
-        // 如需更多字段，可继续 put()
-
-        // —— 4. 序列化并返回 ——
-        String json = jsonMapper.writeValueAsString(result);
-        return new JsonView(json);
+        return result;
     }
 }
