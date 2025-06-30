@@ -14,16 +14,11 @@ import java.util.Map;
 @RestController               // == @Controller + @ResponseBody on every method
 @RequestMapping("/trackers/ajax")
 public class RightPanelController {
-    @GetMapping("/ping.spr")
-    public String ping() {
-        return "pong";
-    }
-
     @Autowired
     private TrackerItemManager trackerItemManager;
 
     @PostMapping(
-            value    = "/custom_item.spr",
+            value    = "/custom_item_v2.spr",            // ★ 改成全新的 URL ★
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public Map<String,Object> getCustomItemData(
