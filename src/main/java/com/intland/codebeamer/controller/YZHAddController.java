@@ -18,8 +18,8 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/trackers/ajax")
-public class TestCaseController {
-    private static final Logger logger = LogManager.getLogger(TestCaseController.class);
+public class YZHAddController {
+    private static final Logger logger = LogManager.getLogger(YZHAddController.class);
 
     private final TrackerDao trackerDao = TrackerDaoImpl.getInstance();
     private final TrackerItemDao trackerItemDao = TrackerItemDaoImpl.getInstance();
